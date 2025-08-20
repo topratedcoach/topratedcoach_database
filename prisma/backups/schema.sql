@@ -1128,7 +1128,6 @@ CREATE TABLE IF NOT EXISTS "public"."calls" (
     "to_number" character varying(50),
     "from_number" character varying(50),
     "summary" "text",
-    "recording_url" character varying(500),
     "agent_id" character varying(100),
     "quality" "jsonb" DEFAULT '{}'::"jsonb",
     "cost" "jsonb" DEFAULT '{}'::"jsonb",

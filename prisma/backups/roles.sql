@@ -5,7 +5,7 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 
 CREATE ROLE "cli_login_postgres";
-ALTER ROLE "cli_login_postgres" WITH NOINHERIT NOCREATEROLE NOCREATEDB LOGIN NOBYPASSRLS VALID UNTIL '2025-08-19 11:10:23.03704+00';
+ALTER ROLE "cli_login_postgres" WITH NOINHERIT NOCREATEROLE NOCREATEDB LOGIN NOBYPASSRLS VALID UNTIL '2025-08-20 01:04:16.63134+00';
 
 ALTER ROLE "anon" SET "statement_timeout" TO '3s';
 

@@ -1129,11 +1129,13 @@ CREATE TABLE IF NOT EXISTS "public"."calls" (
     "from_number" character varying(50),
     "summary" "text",
     "agent_id" character varying(100),
-    "quality" "jsonb" DEFAULT '{}'::"jsonb",
     "cost" "jsonb" DEFAULT '{}'::"jsonb",
     "metadata" "jsonb" DEFAULT '{}'::"jsonb",
     "conv_id" character varying(255),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "call_duration" integer,
+    "interruptions" integer,
+    "termination_reason" "text"
 );
 
 
@@ -1199,10 +1201,6 @@ CREATE TABLE IF NOT EXISTS "public"."generated_call_reports" (
     "audit_id" "uuid" NOT NULL,
     "task_group_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "wait_times" "jsonb" DEFAULT '{}'::"jsonb",
-    "tone_analysis" "jsonb" DEFAULT '{}'::"jsonb",
-    "response_quality" "jsonb" DEFAULT '{}'::"jsonb",
-    "final_score" "jsonb" DEFAULT '{}'::"jsonb",
     "overall_summary" "text",
     "engagement_level" "text",
     "professionalism" "text",
@@ -1216,7 +1214,17 @@ CREATE TABLE IF NOT EXISTS "public"."generated_call_reports" (
     "answering_questions_score" integer,
     "ability_to_upsell_and_cross_sell_score" integer,
     "closing_for_appointment_and_call_to_action_score" integer,
-    "overall_success_rate_out_of_100" integer
+    "overall_success_rate_out_of_100" integer,
+    "appointment_booked" boolean,
+    "initial_wait_time" "text",
+    "on_hold_time" "text",
+    "representative_tone" "text",
+    "tone_consistency" "text",
+    "clarity" "text",
+    "accuracy" "text",
+    "helpfulness" "text",
+    "call_opening" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"()
 );
 
 

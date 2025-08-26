@@ -2052,7 +2052,7 @@ CREATE POLICY "business_competitors_update_own" ON "public"."business_competitor
 ALTER TABLE "public"."businesses" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "businesses_insert_own" ON "public"."businesses" FOR INSERT WITH CHECK ((("owner_id" = ( SELECT "auth"."uid"() AS "uid")) OR ("owner_id" IS NULL)));
+CREATE POLICY "businesses_insert_own" ON "public"."businesses" FOR INSERT TO "authenticated" WITH CHECK (("owner_id" = "auth"."uid"()));
 
 
 

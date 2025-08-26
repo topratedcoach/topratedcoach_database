@@ -1086,7 +1086,8 @@ CREATE TABLE IF NOT EXISTS "public"."businesses" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "current_audit_id" "uuid",
     "last_audited_at" timestamp with time zone,
-    "is_claimed" boolean GENERATED ALWAYS AS (("owner_id" IS NOT NULL)) STORED
+    "is_claimed" boolean GENERATED ALWAYS AS (("owner_id" IS NOT NULL)) STORED,
+    "logo" "uuid"
 );
 
 
@@ -1374,6 +1375,7 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "is_deleted" boolean DEFAULT false,
     "deleted_at" timestamp with time zone,
     "is_admin" boolean DEFAULT false NOT NULL,
+    "profile_photo" "uuid",
     CONSTRAINT "users_credits_check" CHECK (("credits" >= 0)),
     CONSTRAINT "valid_email" CHECK ((("email")::"text" ~* '^.+@.+\..+$'::"text"))
 );

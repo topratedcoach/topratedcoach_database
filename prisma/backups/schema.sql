@@ -1166,6 +1166,8 @@ CREATE TABLE IF NOT EXISTS "public"."chat_messages" (
     "metadata" "jsonb" DEFAULT '{}'::"jsonb"
 );
 
+ALTER TABLE ONLY "public"."chat_messages" REPLICA IDENTITY FULL;
+
 
 ALTER TABLE "public"."chat_messages" OWNER TO "postgres";
 
@@ -2096,6 +2098,14 @@ CREATE POLICY "calls_insert_system" ON "public"."calls" FOR INSERT WITH CHECK (f
 
 
 
+CREATE POLICY "calls_select_admin_all" ON "public"."calls" FOR SELECT USING ("public"."current_user_is_admin"());
+
+
+
+CREATE POLICY "calls_select_owned_businesses" ON "public"."calls" FOR SELECT USING ((("business_id")::"text" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids")));
+
+
+
 CREATE POLICY "calls_update_system" ON "public"."calls" FOR UPDATE USING (false);
 
 
@@ -2200,6 +2210,22 @@ CREATE POLICY "subscriptions_update_system" ON "public"."subscriptions" FOR UPDA
 ALTER TABLE "public"."task_groups" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "task_groups_delete_admin_only" ON "public"."task_groups" FOR DELETE USING ("public"."current_user_is_admin"());
+
+
+
+CREATE POLICY "task_groups_insert_owned_or_admin" ON "public"."task_groups" FOR INSERT WITH CHECK (("public"."current_user_is_admin"() OR ("business_id" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids"))));
+
+
+
+CREATE POLICY "task_groups_select_owned_or_admin" ON "public"."task_groups" FOR SELECT USING (("public"."current_user_is_admin"() OR ("business_id" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids"))));
+
+
+
+CREATE POLICY "task_groups_update_owned_or_admin" ON "public"."task_groups" FOR UPDATE USING (("public"."current_user_is_admin"() OR ("business_id" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids")))) WITH CHECK (("public"."current_user_is_admin"() OR ("business_id" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids"))));
+
+
+
 ALTER TABLE "public"."user_personality" ENABLE ROW LEVEL SECURITY;
 
 
@@ -2227,7 +2253,15 @@ CREATE POLICY "users_update_own" ON "public"."users" FOR UPDATE USING (("id" = (
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 
 
+
+
+
+
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."audits";
+
+
+
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."chat_messages";
 
 
 

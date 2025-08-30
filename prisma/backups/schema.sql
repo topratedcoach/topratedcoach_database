@@ -291,6 +291,33 @@ $$;
 ALTER FUNCTION "public"."check_personality_analysis_threshold"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."count_unclaimed_businesses"("search" "text" DEFAULT NULL::"text") RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'auth'
+    AS $$
+DECLARE
+  total INT;
+BEGIN
+  SELECT COUNT(*)
+  INTO total
+  FROM public.businesses b
+  WHERE
+    b.is_claimed IS DISTINCT FROM TRUE
+    AND (
+      search IS NULL
+      OR search = ''
+      OR b.business_name ILIKE '%' || search || '%'
+      OR b.address ILIKE '%' || search || '%'
+    );
+
+  RETURN total;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."count_unclaimed_businesses"("search" "text") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."create_public_user"("uid" "uuid", "uemail" "text") RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public', 'auth'
@@ -453,6 +480,38 @@ $$;
 
 
 ALTER FUNCTION "public"."get_or_create_chat_session"("_user_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_unclaimed_businesses"("search" "text" DEFAULT NULL::"text", "page_size" integer DEFAULT 50, "page_offset" integer DEFAULT 0) RETURNS TABLE("id" character varying, "business_name" character varying, "address" "text", "website" character varying, "is_claimed" boolean)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'auth'
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    b.id,
+    b.business_name,
+    b.address,
+    b.website,
+    b.is_claimed
+  FROM public.businesses b
+  WHERE
+    -- Unclaimed includes NULL and FALSE, excludes TRUE
+    b.is_claimed IS DISTINCT FROM TRUE
+    AND (
+      search IS NULL
+      OR search = ''
+      OR b.business_name ILIKE '%' || search || '%'
+      OR b.address ILIKE '%' || search || '%'
+    )
+  ORDER BY b.business_name
+  LIMIT page_size
+  OFFSET page_offset;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_unclaimed_businesses"("search" "text", "page_size" integer, "page_offset" integer) OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."handle_email_verification"() RETURNS "trigger"
@@ -2762,6 +2821,13 @@ GRANT ALL ON FUNCTION "public"."cosine_distance"("public"."vector", "public"."ve
 
 
 
+REVOKE ALL ON FUNCTION "public"."count_unclaimed_businesses"("search" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."count_unclaimed_businesses"("search" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."count_unclaimed_businesses"("search" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."count_unclaimed_businesses"("search" "text") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."create_public_user"("uid" "uuid", "uemail" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_public_user"("uid" "uuid", "uemail" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_public_user"("uid" "uuid", "uemail" "text") TO "service_role";
@@ -2795,6 +2861,13 @@ GRANT ALL ON FUNCTION "public"."deduct_credits_for_audit"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_or_create_chat_session"("_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_or_create_chat_session"("_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_or_create_chat_session"("_user_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."get_unclaimed_businesses"("search" "text", "page_size" integer, "page_offset" integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."get_unclaimed_businesses"("search" "text", "page_size" integer, "page_offset" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_unclaimed_businesses"("search" "text", "page_size" integer, "page_offset" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_unclaimed_businesses"("search" "text", "page_size" integer, "page_offset" integer) TO "service_role";
 
 
 

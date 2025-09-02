@@ -2098,9 +2098,7 @@ CREATE POLICY "business_competitors_delete_own" ON "public"."business_competitor
 
 
 
-CREATE POLICY "business_competitors_insert_own" ON "public"."business_competitors" FOR INSERT WITH CHECK ((("added_by" = ( SELECT "auth"."uid"() AS "uid")) AND (EXISTS ( SELECT 1
-   FROM "public"."businesses"
-  WHERE ((("businesses"."id")::"text" = ("business_competitors"."business_id")::"text") AND ("businesses"."owner_id" = ( SELECT "auth"."uid"() AS "uid")))))));
+CREATE POLICY "business_competitors_insert_own" ON "public"."business_competitors" FOR INSERT WITH CHECK ((("added_by" = "auth"."uid"()) AND (("business_id")::"text" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids"))));
 
 
 

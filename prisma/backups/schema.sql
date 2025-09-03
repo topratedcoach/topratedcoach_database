@@ -1116,7 +1116,6 @@ ALTER TABLE "public"."business_competitors" OWNER TO "postgres";
 CREATE TABLE IF NOT EXISTS "public"."businesses" (
     "id" character varying(255) NOT NULL,
     "business_name" character varying(255) NOT NULL,
-    "business_category" character varying(100),
     "website" character varying(500),
     "phone_number" character varying(255),
     "email" character varying(255),
@@ -1146,7 +1145,8 @@ CREATE TABLE IF NOT EXISTS "public"."businesses" (
     "current_audit_id" "uuid",
     "last_audited_at" timestamp with time zone,
     "is_claimed" boolean GENERATED ALWAYS AS (("owner_id" IS NOT NULL)) STORED,
-    "logo" character varying
+    "logo" character varying,
+    "business_category" "text"[]
 );
 
 
@@ -2117,13 +2117,13 @@ CREATE POLICY "businesses_insert_own" ON "public"."businesses" FOR INSERT TO "au
 
 
 
-CREATE POLICY "businesses_select_own_competitors_admin" ON "public"."businesses" FOR SELECT USING ((("owner_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+CREATE POLICY "businesses_select_own_competitors_unclaimed_admin" ON "public"."businesses" FOR SELECT USING ((("owner_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
    FROM "public"."business_competitors" "bc"
-  WHERE (("bc"."is_active" = true) AND (("bc"."competitor_id")::"text" = ("businesses"."id")::"text") AND (("bc"."business_id")::"text" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids"))))) OR "public"."current_user_is_admin"()));
+  WHERE (("bc"."is_active" = true) AND (("bc"."competitor_id")::"text" = ("businesses"."id")::"text") AND (("bc"."business_id")::"text" IN ( SELECT "public"."current_user_owned_business_ids"() AS "current_user_owned_business_ids"))))) OR ("owner_id" IS NULL) OR "public"."current_user_is_admin"()));
 
 
 
-CREATE POLICY "businesses_update_own" ON "public"."businesses" FOR UPDATE TO "authenticated" USING ((("owner_id" = "auth"."uid"()) OR ("owner_id" IS NULL))) WITH CHECK ((("owner_id" = "auth"."uid"()) OR ("owner_id" IS NULL)));
+CREATE POLICY "businesses_update_own_or_claim" ON "public"."businesses" FOR UPDATE USING ((("owner_id" = "auth"."uid"()) OR ("owner_id" IS NULL))) WITH CHECK (("owner_id" = "auth"."uid"()));
 
 
 

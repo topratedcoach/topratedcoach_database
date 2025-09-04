@@ -1066,6 +1066,31 @@ $$;
 
 ALTER FUNCTION "public"."validate_competitor_relationship"() OWNER TO "postgres";
 
+
+CREATE OR REPLACE FUNCTION "public"."validate_referral_code_exists"("referral_code_input" character varying) RETURNS TABLE("is_valid" boolean, "referrer_user_id" "uuid")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'auth'
+    AS $$
+BEGIN
+    -- Check if referral code exists and return the referrer's user ID
+    RETURN QUERY
+    SELECT 
+        CASE WHEN u.id IS NOT NULL THEN TRUE ELSE FALSE END as is_valid,
+        u.id as referrer_user_id
+    FROM public.users u
+    WHERE UPPER(u.referral_code) = UPPER(referral_code_input)
+    LIMIT 1;
+    
+    -- If no rows returned, return false
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT FALSE as is_valid, NULL::UUID as referrer_user_id;
+    END IF;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_referral_code_exists"("referral_code_input" character varying) OWNER TO "postgres";
+
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
@@ -3325,6 +3350,12 @@ GRANT ALL ON FUNCTION "public"."validate_business_ownership"() TO "service_role"
 GRANT ALL ON FUNCTION "public"."validate_competitor_relationship"() TO "anon";
 GRANT ALL ON FUNCTION "public"."validate_competitor_relationship"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."validate_competitor_relationship"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."validate_referral_code_exists"("referral_code_input" character varying) TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_referral_code_exists"("referral_code_input" character varying) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_referral_code_exists"("referral_code_input" character varying) TO "service_role";
 
 
 

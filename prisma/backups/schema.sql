@@ -326,11 +326,21 @@ DECLARE
     new_referral_code VARCHAR(50);
     attempts INTEGER := 0;
     max_attempts INTEGER := 10;
+    user_display_name TEXT;
+    user_phone_number TEXT;
 BEGIN
     -- Skip if already exists
     IF EXISTS (SELECT 1 FROM public.users WHERE id = uid) THEN
         RETURN;
     END IF;
+
+    -- Get user metadata from auth.users
+    SELECT 
+        COALESCE(raw_user_meta_data->>'display_name', raw_user_meta_data->>'name') as display_name,
+        raw_user_meta_data->>'phone_number' as phone_number
+    INTO user_display_name, user_phone_number
+    FROM auth.users 
+    WHERE id = uid;
 
     -- Generate unique referral code
     LOOP
@@ -342,10 +352,12 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- Insert into public.users
+    -- Insert into public.users with metadata
     INSERT INTO public.users (
         id,
         email,
+        display_name,
+        phone_number,
         referral_code,
         created_at,
         updated_at,
@@ -354,6 +366,8 @@ BEGIN
     ) VALUES (
         uid,
         uemail,
+        user_display_name,
+        user_phone_number,
         new_referral_code,
         NOW(),
         NOW(),
